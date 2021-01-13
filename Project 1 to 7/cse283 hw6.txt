@@ -1,0 +1,243 @@
+//HW6: Sparse Vector Operation Due: 4/29 (Sunday) at 11:59PM
+//Add to the following HW3 solution: destructor, copy constructor, move constructor, L-value operator=, R-value operator=
+//You are also required to implement initializer_list and operator<<
+
+#include <iostream>
+using namespace std;
+
+class element {
+public:
+
+	int value;
+	int position;
+	element * next;
+	element(int v, int p) { value = v; position = p; next = nullptr; }
+	element() { next = nullptr; }
+};
+
+class vector {
+public:
+	int vec_size;
+	int num_elements;
+	element * head;
+	vector() { num_elements = 0; vec_size = 0; head = nullptr; }
+	void add_element(int v, int p);
+	void print_vector();
+	void input_vector();
+	vector operator+ (vector &v);
+	int operator* (vector &v);
+
+	//**************************
+	//You need to implement the following funcitons
+	~vector();//destructor	
+	vector(const vector &v); //copy constructor
+	vector(vector &&v); //move constructor
+	vector(const initializer_list<int> &v); //initializer_list initialization
+	void operator=(const vector &v); //L-value operator=
+	void operator=(vector &&v); //R-value operator=
+	friend ostream & operator<<(ostream & stream, const vector &v); //to support cout 
+																	//you need to implement this function outside the class
+																	//*********************************
+};
+
+vector::~vector() { 
+	while (head != NULL) {
+		element *p = head->next;
+		delete head;
+		head = p;
+	}
+}
+vector::vector(const vector &v) { 
+	vec_size = v.vec_size;	
+	element*p = v.head;
+	while (p != NULL) {
+		add_element(p->value, p->position);
+		p = p->next;
+	}
+}
+vector::vector(vector &&v) {	
+	vec_size = v.vec_size;
+	num_elements = v.num_elements;
+	head = v.head;
+	v.head = NULL;
+}
+
+void vector::operator=(const vector &v) {
+	while (head != NULL) {
+		element*p = head->next;
+		delete head;
+		head = p;
+	}
+	vec_size = v.vec_size;
+	element*p1 = v.head;
+	while (p1 != NULL) {
+		add_element(p1->value, p1->position);
+		p1 = p1->next;
+	}
+	
+}
+
+void vector::operator=(vector &&v) {
+	while (head != NULL) {
+		element*p = head->next;
+		delete head;
+		head = p;
+	}
+	vec_size = v.vec_size;
+	num_elements = v.num_elements;
+	head = v.head;
+	v.head = NULL;
+}	
+
+
+
+vector::vector(const initializer_list<int> &v) { 
+	auto it1 = v.begin();
+	vec_size = *it1;
+	it1++;
+	int number_elements = *it1;
+	it1++;
+	while(it1 != v.end()) {
+		int v1 = *it1;
+		it1++;
+		int p1 = *it1;
+		it1++;
+		add_element(v1, p1);
+	}
+}
+
+
+ostream & operator<<(ostream &stream, const vector &v) { 
+	element * p = v.head;
+	while (p != NULL) {
+		stream << p->value << "  "<<p->position<<"  ";
+		p = p->next;
+	}
+	return stream;
+}
+
+vector vector::operator+ (vector &v) {
+	element * p1 = head;
+	element * p2 = v.head;
+	vector temp;
+	while (p1 != nullptr || p2 != nullptr) {
+		if (p1 == nullptr) { temp.add_element(p2->value, p2->position); p2 = p2->next; }
+		else if (p2 == nullptr) { temp.add_element(p1->value, p1->position); p1 = p1->next; }
+		else if (p1->position < p2->position) { temp.add_element(p1->value, p1->position); p1 = p1->next; }
+		else if (p1->position > p2->position) { temp.add_element(p2->value, p2->position); p2 = p2->next; }
+		else if (p1->position == p2->position) {
+			if (p1->value + p2->value != 0) {
+				temp.add_element(p1->value + p2->value, p1->position);
+			}
+			p1 = p1->next;
+			p2 = p2->next;
+		}
+	}
+	return temp;
+}
+
+int vector::operator* (vector &v) {
+	element * p1 = head;
+	element * p2 = v.head;
+	int inner_product = 0;
+	while (p1 != nullptr && p2 != nullptr) {
+
+		if (p1->position < p2->position) { p1 = p1->next; }
+		else if (p1->position > p2->position) { p2 = p2->next; }
+		else if (p1->position == p2->position) {
+			inner_product += p1->value * p2->value;
+			p1 = p1->next; p2 = p2->next;
+		}
+
+	}
+	return inner_product;
+}
+
+void vector::print_vector() {
+	cout << endl;
+	element * p = head;
+	if (p == nullptr) return;
+	while (p != nullptr) {
+		cout << p->value << "  " << p->position << "   ";
+		p = p->next;
+	}
+}
+
+void vector::add_element(int v, int p) {
+	element * p1 = new element(v, p);
+	if (head == nullptr) {
+		head = p1;
+		num_elements++;
+		return;
+	}
+
+	if (p < head->position) {
+		p1->next = head;
+		head = p1;
+		num_elements++;
+		return;
+	}
+
+	element * p2 = head;
+	while (p2->next != nullptr && !(p2->position < p && p2->next->position > p)) {
+		p2 = p2->next;
+	}
+	if (p2->next == nullptr) {
+		p2->next = p1;
+		num_elements++;
+		return;
+	}
+	p1->next = p2->next;
+	p2->next = p1;
+	num_elements++;
+}
+
+void vector::input_vector() {
+	int v_size, n_elements;
+	int v, p;
+	cout << endl;
+	cout << "Enter vector size and  number of elements" << endl;
+	cin >> v_size >> n_elements;
+	vec_size = v_size;
+	cout << "Enter value and position of all elements" << endl;
+	for (int i = 0; i < n_elements; i++) {
+		cin >> v >> p;
+		add_element(v, p);
+	}
+}
+
+int main() {	
+	vector v1 = { 15, 4, 1, 6, 3, 3, -4, 9, -1, 5 };
+	//vec_size = 15, num_elements = 4
+	//value 1 at posittion 6, value 3 at position 3, value -4 at position 9, value -1 at position 5
+	cout << v1 << endl;
+	vector v2 = { 15, 5, 4, 9, -2, 6, 1, 7, -8, 8, 4, 2 };
+	//vec_size = 15, num_elements = 5
+	//value 4 at position 9, value -2 at position 6, value 1 at position 7, value -1 at position 8,
+	//value 4 at position 2
+	cout << v2 << endl;
+	vector v3;
+	v3 = v1;
+	cout << v3 << endl;
+	v3 = v1 + v2;
+	cout << v3 << endl;
+	cout << v1 * v2 << endl;
+	vector v4(v1);
+	cout << v4 << endl;
+
+	getchar();
+	getchar();
+	return 0;
+
+
+}
+/*
+//The following is a screenshot for the provide main function
+3 3 - 1 5  1 6 - 4 9
+4 2 - 2 6  1 7 - 8 8  4 9
+3 3 - 1 5  1 6 - 4 9
+4 2  3 3 - 1 5 - 1 6  1 7 - 8 8
+- 18
+3 3 - 1 5  1 6 - 4 9
+*/
+

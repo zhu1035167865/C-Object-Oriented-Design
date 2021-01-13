@@ -1,0 +1,300 @@
+/* Xiongfeng Zhu    CSE 283 */
+#include <iostream>
+#include <string>
+using namespace std;
+
+class course {
+public:
+	string name;
+	int section;
+	int credit;
+	course * next;
+	course(string n, int s, int c) { name = n; section = s; credit = c; next = nullptr; }
+	course() { next = nullptr; }
+
+};
+
+class student {
+public:
+	int id;
+	course * head;
+	student(int i) { id = i; head = nullptr; }
+	student() { head = nullptr; }
+};
+void add_student(student DB[], int &num_students);
+void add_course(student DB[], int &num_students);
+void check_student(student DB[], int &num_students);
+void check_course(student DB[], int &num_students);
+void print_courses_of_a_student(student DB[], int &num_students);
+void print_all_students(student DB[], int &num_students);
+void print_students_and_courses(student DB[], int &num_students);
+void return_credits(student DB[], int &num_students);
+void remove_student(student DB[], int &num_students);
+void remove_course(student DB[], int &num_students);
+
+int main() {
+	student DB[10];
+	int num_students = 0;
+	int select = -1;
+	for (int i = 0; i < 10; i++) {
+		DB[i].id = -1;
+	}
+	do {
+		cout << "Enter 0-10 to select an operation:\n\n";
+		cout << "0 to quit program" << endl;
+		cout << "1 to add a student" << endl;
+		cout << "2 to remove a student" << endl;
+		cout << "3 to check for student" << endl;
+		cout << "4 to add a course for a student" << endl;
+		cout << "5 to check for course" << endl;
+		cout << "6 to remove course" << endl;
+		cout << "7 to show nuumber of credits" << endl;
+		cout << "8 to print all courses of a student" << endl;
+		cout << "9 to print all students" << endl;
+		cout << "10 to print all students and courses" << endl << endl << endl;
+		printf("                                Pay Attention : \nif nothing is display which mean those student is not in system or not students in system so far !!!\n"); 
+		cin >> select;
+		switch (select) {
+		case 0: break;
+		case 1: add_student(DB, num_students); break;
+		case 2: remove_student(DB, num_students); break;
+		case 3: check_student(DB, num_students); break;
+		case 4: add_course(DB, num_students); break;
+		case 5: check_course(DB, num_students); break;
+		case 6: remove_course(DB, num_students); break;
+		case 7: return_credits(DB, num_students); break;
+		case 8: print_courses_of_a_student(DB, num_students); break;
+		case 9: print_all_students(DB, num_students); break;
+		case 10: print_students_and_courses(DB, num_students); break;
+		}
+
+	} while (select != 0);
+	getchar();
+	getchar();
+	return 0;
+}
+
+void add_student(student DB[], int &num_students) {
+	int ID;
+	cout << "Enter student id" << endl;;
+	cin >> ID;
+	for (int i = 0; i < num_students; i++) {
+		if (DB[i].id == ID) {
+			cout << "The student is already in DB"; return;
+		}
+	}
+	student s1(ID);
+
+
+	DB[num_students] = s1;
+
+	num_students++;
+}
+
+void remove_student(student DB[], int &num_students) {
+	bool ID = true;
+	int id;
+
+	cout << "\nEnter Student ID: ";
+	cin >> id;
+	cout << endl;
+
+	for (int i = 0; i < num_students; i++)
+	{
+		if (DB[i].id == id) {
+			for (int j = i; j < num_students - 1; j++)
+			{
+				DB[j] = DB[j + 1];
+			}
+			num_students--;
+			ID = false;
+		}
+	}
+	if (ID) {
+		cout << "This student is not in the system.\n\n";
+	}
+}
+
+void remove_course(student DB[], int &num_students) {
+	int id;
+	bool idt = true;	
+	string n;
+
+	cout << "Enter Student ID: ";
+	cin >> id;
+	cout << endl;
+	cout << "Enter name of course: ";
+	cin >> n;
+	cout << endl;
+
+	for (int i = 0; i < num_students; i++)
+	{
+		if (DB[i].id == id) {
+			idt = false;
+			course *p = DB[i].head;
+			course *p_previous = nullptr;
+			while (p != nullptr && (p->name).compare(n) != 0) {
+				p_previous = p;
+				p = p->next;
+			}
+			if (p == nullptr) {
+				cout << "This student is not enrolled in this course.\n\n";
+				return;
+			}
+			else if (p_previous == nullptr) {
+				DB[i].head = p->next;
+			}
+			else {
+				p_previous->next = p->next;
+			}
+		}
+	}
+	if (!idt) {
+		cout << "Student not in system" << endl;
+	}
+	else {
+		cout << "Course deleted" << endl;
+	}
+}
+
+void check_student(student DB[], int &num_students) {
+	int ID;
+	cout << "Enter student id" << endl;;
+	cin >> ID;
+	int found = -1;
+	for (int i = 0; i < num_students; i++) {
+		if (DB[i].id == ID) {
+			found = i;
+			cout << " those student in system" << endl<<endl;
+			break;
+		}
+	}
+	if (found == -1) { cout << " \nError! The student does not exist!" << endl << endl; return; }
+}
+
+void check_course(student DB[], int &num_students) {
+	course * p = nullptr;
+	int id;
+	string n;
+	cout << "\nEnter Student ID: ";
+	cin >> id;
+	cout << endl;
+	cout << "Enter Course Name: ";
+	cin >> n;
+	cout << endl;
+	int find = -1;
+	for (int i = 0; i < num_students; i++) {
+		if (DB[i].id == id) {
+			find = i;
+			p = DB[i].head;
+			while (p != nullptr) {
+				if (DB[i].head->name.compare(n) == 0) {
+					cout << "The student is enrolled in course.\n\n";
+					break;
+				}
+				p = p->next;
+			}
+		}
+	}
+	cout << "The student is not enrolled in course.\n\n";
+}
+
+void add_course(student DB[], int & num_students) {
+	int ID;
+	cout << "Enter student id" << endl;;
+	cin >> ID;
+	int found = -1;
+	for (int i = 0; i < num_students; i++) {
+		if (DB[i].id == ID) {
+			found = i; break;
+		}
+	}
+	if (found == -1) { cout << " Error! The student does not exist!" << endl; return; }
+
+	//Ask user for course informaiton
+	string n;
+	int s, c;
+	cout << "Enter course name, section number and credits separated by space" << endl;
+	cin >> n >> s >> c;
+
+	//Check to see if the course is already in DB
+	course * p1 = DB[found].head;
+	while (p1 != nullptr) {
+		if (p1->name == n) {
+			cout << "The course is already in DB" << endl;
+			return;
+		}
+		p1 = p1->next;
+	}
+	//Add the course to DB
+	course * p = new course(n, s, c);
+	p->next = DB[found].head;
+	DB[found].head = p;
+}
+
+void print_courses_of_a_student(student DB[], int &num_students) {
+
+	int ID;
+	cout << "Enter student id" << endl;;
+	cin >> ID;
+	int found = -1;
+	for (int i = 0; i < num_students; i++) {
+		if (DB[i].id == ID) {
+			found = i; break;
+		}
+	}
+	if (found == -1) {
+		cout << "Error!! The student is not in DB" << endl;
+		return;
+	}
+	course * p = DB[found].head;
+	while (p != nullptr) {
+		cout << p->name << " " << p->section << " " << p->credit << endl;
+		p = p->next;
+	}
+ 
+	
+}
+
+void print_all_students(student DB[], int & num_students) {
+	for (int i = 0; i < num_students; i++) {
+		if (i != 0) {
+			cout << "no student so far" << endl;
+		}
+	 { cout << DB[i].id << endl; }
+	}
+}
+
+void print_students_and_courses(student DB[], int & num_students) {
+
+	for (int i = 0; i < num_students; i++) {
+		cout << DB[i].id << endl;
+		course * p = DB[i].head;
+		while (p != nullptr) {
+			cout << p->name << " " << p->section << " " << p->credit << endl;
+			p = p->next;
+		}
+	}
+}
+
+void return_credits(student DB[], int & num_students) {
+	int id;
+	
+	cout << "\nEnter Student ID: ";
+	cin >> id;
+	cout << endl;
+	int find = -1;
+	for (int i = 0; i < num_students; i++) {
+		if (DB[i].id == id) {
+			find = i;
+			break;
+		}
+	}
+	int sum = 0;
+	course * p = DB[find].head;
+	while (p != nullptr) {
+		sum = sum + p->credit;
+		p = p->next;
+	}
+	cout << sum << endl;
+}
